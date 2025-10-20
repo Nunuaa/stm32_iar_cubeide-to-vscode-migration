@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IAR 项目移植到 VSCode 开发环境配置指南</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #007acc;
+            --secondary-color: #68217a;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --dark-bg: #1e1e1e;
+            --light-bg: #f5f5f5;
+            --code-bg: #2d2d2d;
+            --border-color: #ddd;
+            --text-color: #333;
+            --text-light: #666;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        nav {
+            background: var(--dark-bg);
+            padding: 15px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s;
+            display: block;
+        }
+
+        nav a:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        main {
+            padding: 40px;
+        }
+
+        section {
+            margin-bottom: 50px;
+            scroll-margin-top: 70px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        h3 {
+            color: var(--secondary-color);
+            font-size: 1.5em;
+            margin: 30px 0 15px 0;
+        }
+
+        h4 {
+            color: var(--text-color);
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .card {
+            background: var(--light-bg);
+            border-left: 4px solid var(--primary-color);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .card.warning {
+            border-left-color: var(--warning-color);
+            background: #fff3cd;
+        }
+
+        .card.success {
+            border-left-color: var(--success-color);
+            background: #d4edda;
+        }
+
+        .card.danger {
+            border-left-color: var(--danger-color);
+            background: #f8d7da;
+        }
+
+        .code-block {
+            background: var(--code-bg);
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+        }
+
+         .code-block code {
+             background: transparent;
+             padding: 0;
+             white-space: pre;
+             display: block;
+         }
+
+        .download-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: all 0.3s;
+            margin: 10px 10px 10px 0;
+        }
+
+        .download-link:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .checkbox-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background: var(--light-bg);
+        }
+
+        .file-tree {
+            background: var(--light-bg);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+        }
+
+        .file-tree li {
+            margin: 5px 0;
+            list-style: none;
+        }
+
+        .file-tree li::before {
+            content: "\1F4C4 ";
+            margin-right: 5px;
+        }
+
+        .file-tree li.folder::before {
+            content: "\1F4C1 ";
+        }
+
+        .accordion {
+            margin: 20px 0;
+        }
+
+        .accordion-item {
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            background: var(--light-bg);
+            padding: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .accordion-header:hover {
+            background: #e0e0e0;
+        }
+
+        .accordion-header::after {
+            content: "▼";
+            transition: transform 0.3s;
+        }
+
+        .accordion-header.active::after {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            padding: 15px;
+            display: none;
+            background: white;
+        }
+
+        .accordion-content.show {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: var(--light-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+            width: 0%;
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        footer {
+            background: var(--dark-bg);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            main, header, footer {
+                padding: 20px;
+            }
+
+            nav ul {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            table {
+                font-size: 0.85em;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+            }
+
+            nav, .download-link, .btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>&#x1F680; IAR 项目移植到 VSCode 开发环境配置指南</h1>
+            <p>基于 Clangd 的嵌入式 C/C++ 开发环境完整配置</p>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#overview">概述</a></li>
+                <li><a href="#prerequisites">前置条件</a></li>
+                <li><a href="#vscode-setup">VSCode 安装</a></li>
+                <li><a href="#toolchain">工具链配置</a></li>
+                <li><a href="#project-setup">项目配置</a></li>
+                <li><a href="#usage">使用说明</a></li>
+                <li><a href="#troubleshooting">故障排查</a></li>
+                <li><a href="#faq">常见问题</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <!-- 进度条 -->
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress">0%</div>
+            </div>
+
+            <!-- 概述 -->
+            <section id="overview">
+                <h2>&#x1F4CB; 概述</h2>
+                <p>本指南将帮助您将基于 IAR Embedded Workbench 的嵌入式项目（AT32F4xx）迁移到 Visual Studio Code 开发环境，使用 Clangd 作为语言服务器，提供现代化的代码智能提示、跳转、重构等功能。</p>
+                
+                <div class="card success">
+                    <h3>&#x2705; 完成后您将获得</h3>
+                    <ul>
+                        <li>&#x2728; 现代化的代码编辑体验（自动补全、语法高亮、错误检查）</li>
+                        <li>&#x1F50D; 精准的代码导航（跳转到定义、查找引用）</li>
+                        <li>&#x1F6E0;&#xFE0F; 强大的重构工具</li>
+                        <li>&#x1F4CA; 实时代码诊断</li>
+                        <li>&#x1F4A1; 智能代码建议</li>
+                        <li>&#x1F680; 跨平台开发环境</li>
+                    </ul>
+                </div>
+
+                <div class="card warning">
+                    <h3>&#x26A0;&#xFE0F; 注意事项</h3>
+                    <ul>
+                        <li>本环境主要用于<strong>代码编辑和浏览</strong>，不替代 IAR 的编译和调试功能</li>
+                        <li>仍需使用 IAR 进行最终的编译、链接和调试</li>
+                        <li>Clangd 提供的是静态分析和代码智能，而非实际编译</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 前置条件 -->
+            <section id="prerequisites">
+                <h2>&#x1F4E6; 前置条件</h2>
+                
+                <h3>系统要求</h3>
+                <table>
+                    <tr>
+                        <th>项目</th>
+                        <th>要求</th>
+                        <th>推荐</th>
+                    </tr>
+                    <tr>
+                        <td>操作系统</td>
+                        <td>Windows 10+, macOS 10.15+, Linux</td>
+                        <td>Windows 11</td>
+                    </tr>
+                    <tr>
+                        <td>内存</td>
+                        <td>4GB+</td>
+                        <td>8GB+</td>
+                    </tr>
+                    <tr>
+                        <td>磁盘空间</td>
+                        <td>2GB+</td>
+                        <td>5GB+</td>
+                    </tr>
+                    <tr>
+                        <td>Python</td>
+                        <td>Python 3.6+</td>
+                        <td>Python 3.10+</td>
+                    </tr>
+                </table>
+
+                <h3>必需软件清单</h3>
+                <div class="card">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="check-vscode">
+                        <label for="check-vscode"><strong>Visual Studio Code</strong> - 主编辑器</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="check-python">
+                        <label for="check-python"><strong>Python 3.6+</strong> - 运行 make.py 脚本</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="check-toolchain">
+                        <label for="check-toolchain"><strong>ARM GCC 工具链</strong> - 提供编译器和系统头文件</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="check-iar">
+                        <label for="check-iar"><strong>IAR Embedded Workbench</strong> - 原项目环境（可选，用于对比）</label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VSCode 安装和配置 -->
+            <section id="vscode-setup">
+                <h2>&#x1F4BB; VSCode 安装和插件配置</h2>
+
+                <h3><span class="step-number">1</span>安装 Visual Studio Code</h3>
+                <div class="card">
+                    <p><strong>下载地址：</strong></p>
+                    <a href="https://code.visualstudio.com/" class="download-link" target="_blank">
+                        &#x1F310; Visual Studio Code 官网
+                    </a>
+                    
+                    <h4>安装步骤：</h4>
+                    <ol>
+                        <li>访问官网下载适合您操作系统的安装包</li>
+                        <li>运行安装程序，建议勾选以下选项：
+                            <ul>
+                                <li>&#x2611;&#xFE0F; 添加到 PATH 环境变量</li>
+                                <li>&#x2611;&#xFE0F; 通过 Code 打开（右键菜单集成）</li>
+                                <li>&#x2611;&#xFE0F; 注册文件关联</li>
+                            </ul>
+                        </li>
+                        <li>完成安装后启动 VSCode</li>
+                    </ol>
+                </div>
+
+                <h3><span class="step-number">2</span>安装 Clangd 插件</h3>
+                <div class="card">
+                    <p>Clangd 是基于 LLVM 的 C/C++ 语言服务器，提供智能代码补全、诊断和导航功能。</p>
+                    
+                    <h4>安装方法一：通过 VSCode 扩展市场</h4>
+                    <ol>
+                        <li>打开 VSCode</li>
+                        <li>按 <code>Ctrl+Shift+X</code> (macOS: <code>Cmd+Shift+X</code>) 打开扩展面板</li>
+                        <li>搜索 <strong>clangd</strong></li>
+                        <li>找到 <strong>clangd (by LLVM Extensions)</strong></li>
+                        <li>点击 <strong>Install</strong> 安装</li>
+                    </ol>
+
+                    <h4>安装方法二：通过命令行</h4>
+                    <div class="code-block" data-lang="bash">
+<code>code --install-extension llvm-vs-code-extensions.vscode-clangd</code>
+                    </div>
+
+                    <div class="card warning">
+                        <strong>&#x26A0;&#xFE0F; 重要：</strong>安装 Clangd 插件后，系统会提示下载 Clangd 二进制文件。请点击 <strong>Download</strong> 自动下载。如果没有提示，请执行：
+                        <ol>
+                            <li>按 <code>Ctrl+Shift+P</code> 打开命令面板</li>
+                            <li>输入 <code>clangd: Download language server</code></li>
+                            <li>选择并执行该命令</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <h3><span class="step-number">3</span>禁用 C/C++ 插件的 IntelliSense（重要！）</h3>
+                <div class="card danger">
+                    <p><strong>&#x1F6A8; 必须执行此步骤！</strong>否则会与 Clangd 冲突，导致代码提示混乱。</p>
+                    
+                    <h4>如果已安装 Microsoft C/C++ 插件：</h4>
+                    <ol>
+                        <li>打开 VSCode 设置（<code>Ctrl+,</code> 或 <code>Cmd+,</code>）</li>
+                        <li>搜索 <code>C_Cpp.intelliSenseEngine</code></li>
+                        <li>将值设置为 <strong>Disabled</strong></li>
+                    </ol>
+
+                    <p><strong>或者</strong>完全卸载 C/C++ 插件（推荐，如果您只使用 Clangd）：</p>
+                    <ol>
+                        <li>打开扩展面板（<code>Ctrl+Shift+X</code>）</li>
+                        <li>搜索 <strong>C/C++</strong></li>
+                        <li>找到 Microsoft 的 C/C++ 插件</li>
+                        <li>点击 <strong>Uninstall</strong></li>
+                    </ol>
+                </div>
+
+                <h3><span class="step-number">4</span>推荐安装的其他插件</h3>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <div class="accordion-header">Better C++ Syntax</div>
+                        <div class="accordion-content">
+                            <p><strong>插件ID：</strong> jeff-hykin.better-cpp-syntax</p>
+                            <p><strong>功能：</strong>改进 C++ 语法高亮</p>
+                            <div class="code-block" data-lang="bash">
+<code>code --install-extension jeff-hykin.better-cpp-syntax</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">Error Lens</div>
+                        <div class="accordion-content">
+                            <p><strong>插件ID：</strong> usernamehw.errorlens</p>
+                            <p><strong>功能：</strong>在代码行内直接显示错误和警告</p>
+                            <div class="code-block" data-lang="bash">
+<code>code --install-extension usernamehw.errorlens</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">Bookmarks</div>
+                        <div class="accordion-content">
+                            <p><strong>插件ID：</strong> alefragnani.bookmarks</p>
+                            <p><strong>功能：</strong>代码书签管理</p>
+                            <div class="code-block" data-lang="bash">
+<code>code --install-extension alefragnani.bookmarks</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">GitLens (如果使用 Git)</div>
+                        <div class="accordion-content">
+                            <p><strong>插件ID：</strong> eamodio.gitlens</p>
+                            <p><strong>功能：</strong>增强 Git 集成</p>
+                            <div class="code-block" data-lang="bash">
+<code>code --install-extension eamodio.gitlens</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 工具链配置 -->
+            <section id="toolchain">
+                <h2>? ARM GCC 工具链安装</h2>
+
+                <h3><span class="step-number">1</span>下载 ARM GCC 工具链</h3>
+                <div class="card">
+                    <p>Clangd 需要 ARM 工具链的头文件和库来正确分析嵌入式代码。</p>
+                    
+                    <a href="https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads" class="download-link" target="_blank">
+                        ? ARM GNU Toolchain 官方下载
+                    </a>
+
+                    <h4>版本选择：</h4>
+                    <ul>
+                        <li>推荐版本：<strong>arm-none-eabi</strong> (适用于裸机/RTOS)</li>
+                        <li>建议版本：<strong>13.x</strong> 或 <strong>14.x</strong></li>
+                        <li>Windows 用户：选择 <code>.exe</code> 安装包</li>
+                        <li>Linux/macOS 用户：选择对应的压缩包</li>
+                    </ul>
+                </div>
+
+                <h3><span class="step-number">2</span>安装工具链</h3>
+                <div class="card">
+                    <h4>Windows 安装：</h4>
+                    <ol>
+                        <li>运行下载的 <code>.exe</code> 安装程序</li>
+                        <li>选择安装路径（建议：<code>C:\Program Files\ARM\</code> 或 <code>E:\tool\14.2 rel1\</code>）</li>
+                        <li><strong>重要：</strong>勾选 <strong>"Add path to environment variable"</strong></li>
+                        <li>完成安装</li>
+                    </ol>
+
+                    <h4>验证安装：</h4>
+                    <p>打开命令提示符或 PowerShell，运行：</p>
+                    <div class="code-block" data-lang="bash">
+<code>arm-none-eabi-gcc --version</code>
+                    </div>
+                    <p>应该看到类似输出：</p>
+                    <div class="code-block" data-lang="text">
+<code>arm-none-eabi-gcc (Arm GNU Toolchain 14.2.Rel1) 14.2.0
+Copyright (C) 2024 Free Software Foundation, Inc.</code>
+                    </div>
+
+                    <div class="card warning">
+                        <strong>?? 如果命令未找到：</strong>
+                        <ol>
+                            <li>手动添加到 PATH 环境变量：
+                                <ul>
+                                    <li>Windows: 系统属性 → 环境变量 → PATH → 添加 <code>C:\Program Files\ARM\bin</code></li>
+                                    <li>Linux/macOS: 编辑 <code>~/.bashrc</code> 或 <code>~/.zshrc</code>，添加：
+                                        <div class="code-block" data-lang="bash">
+<code>export PATH="$PATH:/path/to/arm-gcc/bin"</code>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>重启终端或 VSCode</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <h3><span class="step-number">3</span>配置编译器路径</h3>
+                <div class="card">
+                    <p>记录您的 ARM GCC 安装路径，稍后在生成 <code>compile_commands.json</code> 时需要使用。</p>
+                    
+                    <h4>常见路径示例：</h4>
+                    <table>
+                        <tr>
+                            <th>系统</th>
+                            <th>典型路径</th>
+                        </tr>
+                        <tr>
+                            <td>Windows</td>
+                            <td><code>C:\Program Files\ARM\bin\arm-none-eabi-gcc.exe</code><br>
+                                <code>E:\tool\14.2 rel1\bin\arm-none-eabi-gcc.exe</code></td>
+                        </tr>
+                        <tr>
+                            <td>Linux</td>
+                            <td><code>/usr/bin/arm-none-eabi-gcc</code><br>
+                                <code>/opt/arm-gcc/bin/arm-none-eabi-gcc</code></td>
+                        </tr>
+                        <tr>
+                            <td>macOS</td>
+                            <td><code>/usr/local/bin/arm-none-eabi-gcc</code><br>
+                                <code>/opt/homebrew/bin/arm-none-eabi-gcc</code></td>
+                        </tr>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 项目配置 -->
+            <section id="project-setup">
+                <h2>项目配置</h2>
+
+                <h3><span class="step-number">1</span>准备项目文件</h3>
+                <div class="card">
+                    <p>确保您的项目包含以下文件：</p>
+                    <div class="file-tree">
+                        <ul>
+                            <li class="folder">项目根目录/
+                                <ul>
+                                    <li>M_Folklift.ewp （IAR 项目文件）</li>
+                                    <li>make.py （Python 脚本，用于生成 compile_commands.json）</li>
+                                    <li>.clangd （Clangd 配置文件，需要创建）</li>
+                                    <li class="folder">.vscode/
+                                        <ul>
+                                            <li>settings.json （VSCode 工作区配置，需要创建）</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3><span class="step-number">2</span>创建 .clangd 配置文件</h3>
+                <div class="card">
+                    <p>在项目根目录创建 <code>.clangd</code> 文件，内容如下：</p>
+                    <div class="code-block" data-lang="yaml"><code>CompileFlags:
+  # 使用当前目录下的 compile_commands.json
+  CompilationDatabase: "."
+
+  # 额外添加的标志(如果 compile_commands.json 中没有的话)
+  Add:
+    - --target=arm-none-eabi
+
+  # 移除可能导致错误的标志
+  Remove:
+    - -Wpragma-once-outside-header
+    - -fno-exceptions
+    - -fno-rtti
+
+Diagnostics:
+  # 抑制嵌入式开发中常见的错误报告
+  Suppress:
+    - pragma-once-outside-header
+    - unused-parameter
+    - unknown-pragmas
+    - unused-variable
+
+  # 取消这些不需要的检查
+  UnusedIncludes: Strict
+  MissingIncludes: Strict
+
+Index:
+  # 后台索引模式
+  Background: Build
+
+Completion:
+  # 代码补全设置
+  AllScopes: true</code></div>
+
+                    <div class="card success">
+                        <strong>? 配置说明：</strong>
+                        <ul>
+                            <li><code>CompilationDatabase: "."</code> - 指定 compile_commands.json 的位置</li>
+                            <li><code>Add: --target=arm-none-eabi</code> - 指定 ARM 目标架构</li>
+                            <li><code>Suppress</code> - 抑制不必要的警告，减少干扰</li>
+                            <li><code>Background: Build</code> - 后台构建索引，提高性能</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3><span class="step-number">3</span>创建 VSCode 工作区配置</h3>
+                <div class="card">
+                    <p>在项目根目录创建 <code>.vscode/settings.json</code> 文件（如果 .vscode 文件夹不存在，先创建）：</p>
+                    <div class="code-block" data-lang="json"><code>{
+  "clangd.arguments": [
+    "--background-index",
+    "--pch-storage=memory",
+    "--query-driver=**/arm-none-eabi-*",
+    "--compile-commands-dir=${workspaceFolder}",
+    "--offset-encoding=utf-16"
+  ],
+  "C_Cpp.intelliSenseEngine": "Disabled",
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/compile_commands.json",
+  "files.watcherExclude": {
+    "**/Debug/**": true,
+    "**/.git/**": true,
+    "**/build/**": true
+  },
+  "search.exclude": {
+    "**/Debug/**": true,
+    "**/.git/**": true,
+    "**/build/**": true
+  }
+}</code></div>
+
+                    <div class="card success">
+                        <strong>?配置说明：</strong>
+                        <ul>
+                            <li><code>--background-index</code> - 后台索引，提高响应速度</li>
+                            <li><code>--pch-storage=memory</code> - 预编译头存储在内存中</li>
+                            <li><code>--query-driver</code> - 自动查询 ARM GCC 的系统头文件路径</li>
+                            <li><code>C_Cpp.intelliSenseEngine: "Disabled"</code> - 禁用 C/C++ 插件冲突</li>
+                            <li><code>watcherExclude/searchExclude</code> - 排除不必要的目录，提高性能</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3><span class="step-number">4</span>检查 make.py 脚本</h3>
+                <div class="card">
+                    <p>确保 <code>make.py</code> 脚本已经存在于项目根目录。此脚本用于从 IAR 项目文件（.ewp）提取编译信息并生成 <code>compile_commands.json</code>。</p>
+                    
+                    <h4>make.py 主要功能：</h4>
+                    <ul>
+                        <li>解析 IAR .ewp 工程文件</li>
+                        <li>提取包含路径（Include Paths）</li>
+                        <li>提取宏定义（Defines）</li>
+                        <li>提取源文件列表</li>
+                        <li>自动检测 ARM 工具链的系统头文件</li>
+                        <li>生成 compile_commands.json</li>
+                    </ul>
+                </div>
+
+                <h3><span class="step-number">5</span>生成 compile_commands.json</h3>
+                <div class="card">
+                    <h4>基本用法：</h4>
+                    <p>在项目根目录打开终端（VSCode 中按 <code>Ctrl+`</code>），运行：</p>
+                    <div class="code-block" data-lang="bash">
+<code># 使用默认参数（推荐）
+python make.py
+
+# 或指定完整参数
+python make.py --ewp M_Folklift.ewp --config Debug --compiler "E:/tool/14.2 rel1/bin/arm-none-eabi-gcc.exe"</code>
+                    </div>
+
+                    <h4>参数说明：</h4>
+                    <table>
+                        <tr>
+                            <th>参数</th>
+                            <th>说明</th>
+                            <th>默认值</th>
+                        </tr>
+                        <tr>
+                            <td><code>--ewp</code></td>
+                            <td>IAR 项目文件路径</td>
+                            <td><code>M_Folklift.ewp</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--config</code></td>
+                            <td>IAR 配置名称</td>
+                            <td><code>Debug</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--output</code></td>
+                            <td>输出文件名</td>
+                            <td><code>compile_commands.json</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--compiler</code></td>
+                            <td>ARM GCC 编译器路径</td>
+                            <td><code>E:/tool/14.2 rel1/bin/arm-none-eabi-gcc.exe</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--use-clang</code></td>
+                            <td>使用 clang 替代 arm-gcc（更好的兼容性）</td>
+                            <td>未启用</td>
+                        </tr>
+                    </table>
+
+                    <div class="card success">
+                        <strong>? 成功输出示例：</strong>
+                        <div class="code-block" data-lang="text">
+<code>正在解析 M_Folklift.ewp (配置: Debug) ...
+使用编译器: E:/tool/14.2 rel1/bin/arm-none-eabi-gcc.exe
+正在检测工具链系统包含路径...
+找到 4 个系统包含路径
+正在读取工程文件列表...
+在工程中找到 87 个源文件 (原始条目: 142)
+正在写入 compile_commands.json...
+完成！生成了 87 个编译命令
+
+提取的配置:
+  - 15 个包含路径
+  - 8 个宏定义
+
+下一步：
+  1. 重启 clangd: Ctrl+Shift+P -> 'clangd: Restart language server'</code>
+                        </div>
+                    </div>
+
+                    <div class="card warning">
+                        <strong>?? 常见错误处理：</strong>
+                        <h4>错误：找不到 Python</h4>
+                        <ul>
+                            <li>确保已安装 Python 3.6+</li>
+                            <li>检查 PATH 环境变量</li>
+                            <li>尝试使用 <code>python3 make.py</code> 或 <code>py make.py</code></li>
+                        </ul>
+
+                        <h4>错误：编译器不存在</h4>
+                        <ul>
+                            <li>检查 <code>--compiler</code> 参数路径是否正确</li>
+                            <li>Windows 路径示例：<code>E:/tool/14.2 rel1/bin/arm-none-eabi-gcc.exe</code></li>
+                            <li>可以设置环境变量 <code>COMPILER_PATH</code> 避免每次输入</li>
+                        </ul>
+
+                        <h4>错误：找不到配置</h4>
+                        <ul>
+                            <li>检查 IAR 项目中的配置名称（通常是 Debug 或 Release）</li>
+                            <li>使用 <code>--config Release</code> 切换配置</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3><span class="step-number">6</span>重启 Clangd 语言服务器</h3>
+                <div class="card">
+                    <p>生成 <code>compile_commands.json</code> 后，需要重启 Clangd 以加载新配置：</p>
+                    <ol>
+                        <li>按 <code>Ctrl+Shift+P</code> (macOS: <code>Cmd+Shift+P</code>) 打开命令面板</li>
+                        <li>输入 <code>clangd: Restart language server</code></li>
+                        <li>选择并执行该命令</li>
+                        <li>等待 Clangd 重新索引项目（可能需要 1-3 分钟）</li>
+                    </ol>
+
+                    <p>您可以在 VSCode 底部状态栏看到 Clangd 的索引进度：</p>
+                    <div class="code-block" data-lang="text">
+<code>clangd: Indexing... (45/87)</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 使用说明 -->
+            <section id="usage">
+                <h2>使用说明</h2>
+
+                <h3>日常开发流程</h3>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <div class="accordion-header">1. 打开项目</div>
+                        <div class="accordion-content">
+                            <ol>
+                                <li>启动 VSCode</li>
+                                <li>文件 → 打开文件夹 → 选择项目根目录</li>
+                                <li>等待 Clangd 加载完成（首次可能需要几分钟）</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">2. 代码编辑和导航</div>
+                        <div class="accordion-content">
+                            <h4>智能补全：</h4>
+                            <ul>
+                                <li>输入代码时自动触发</li>
+                                <li>或按 <code>Ctrl+Space</code> 手动触发</li>
+                            </ul>
+
+                            <h4>跳转到定义：</h4>
+                            <ul>
+                                <li>鼠标：<code>Ctrl+Click</code> (macOS: <code>Cmd+Click</code>)</li>
+                                <li>键盘：<code>F12</code></li>
+                            </ul>
+
+                            <h4>查找引用：</h4>
+                            <ul>
+                                <li>右键 → Find All References</li>
+                                <li>或按 <code>Shift+F12</code></li>
+                            </ul>
+
+                            <h4>重命名符号：</h4>
+                            <ul>
+                                <li>右键 → Rename Symbol</li>
+                                <li>或按 <code>F2</code></li>
+                            </ul>
+
+                            <h4>查看悬停信息：</h4>
+                            <ul>
+                                <li>鼠标悬停在符号上，查看类型、注释等信息</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">3. 错误诊断</div>
+                        <div class="accordion-content">
+                            <p>Clangd 会实时分析代码，显示错误和警告：</p>
+                            <ul>
+                                <li>? 红色波浪线：错误</li>
+                                <li>? 黄色波浪线：警告</li>
+                                <li>查看问题面板：<code>Ctrl+Shift+M</code></li>
+                            </ul>
+
+                            <div class="card warning">
+                                <strong>注意：</strong>某些错误可能是 Clangd 误报（例如 IAR 特定的编译指示或宏）。这些不影响 IAR 编译，可以在 .clangd 中配置忽略。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">4. 编译和调试（使用 IAR）</div>
+                        <div class="accordion-content">
+                            <p>VSCode 环境主要用于<strong>代码编辑</strong>，编译和调试仍使用 IAR：</p>
+                            <ol>
+                                <li>在 VSCode 中编辑代码</li>
+                                <li>保存文件（<code>Ctrl+S</code>）</li>
+                                <li>切换到 IAR Embedded Workbench</li>
+                                <li>在 IAR 中进行编译、链接、下载和调试</li>
+                            </ol>
+
+                            <div class="card success">
+                                <strong>? 提示：</strong>可以同时打开 VSCode 和 IAR，两者可以无缝协作。VSCode 负责代码编辑和浏览，IAR 负责编译和调试。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">5. 更新配置</div>
+                        <div class="accordion-content">
+                            <p>当 IAR 项目发生变化时（例如添加新文件、修改包含路径），需要重新生成 <code>compile_commands.json</code>：</p>
+                            <ol>
+                                <li>在 VSCode 终端运行 <code>python make.py</code></li>
+                                <li>按 <code>Ctrl+Shift+P</code> → <code>clangd: Restart language server</code></li>
+                            </ol>
+
+                            <h4>需要重新生成的情况：</h4>
+                            <ul>
+                                <li>添加/删除源文件</li>
+                                <li>修改包含路径</li>
+                                <li>修改宏定义</li>
+                                <li>切换 IAR 配置（Debug/Release）</li>
+                                <li>仅修改代码内容（无需重新生成）</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>快捷键速查表</h3>
+                <table>
+                    <tr>
+                        <th>功能</th>
+                        <th>Windows/Linux</th>
+                        <th>macOS</th>
+                    </tr>
+                    <tr>
+                        <td>打开命令面板</td>
+                        <td><code>Ctrl+Shift+P</code></td>
+                        <td><code>Cmd+Shift+P</code></td>
+                    </tr>
+                    <tr>
+                        <td>跳转到定义</td>
+                        <td><code>F12</code></td>
+                        <td><code>F12</code></td>
+                    </tr>
+                    <tr>
+                        <td>查找引用</td>
+                        <td><code>Shift+F12</code></td>
+                        <td><code>Shift+F12</code></td>
+                    </tr>
+                    <tr>
+                        <td>重命名符号</td>
+                        <td><code>F2</code></td>
+                        <td><code>F2</code></td>
+                    </tr>
+                    <tr>
+                        <td>智能补全</td>
+                        <td><code>Ctrl+Space</code></td>
+                        <td><code>Cmd+Space</code></td>
+                    </tr>
+                    <tr>
+                        <td>格式化文档</td>
+                        <td><code>Shift+Alt+F</code></td>
+                        <td><code>Shift+Option+F</code></td>
+                    </tr>
+                    <tr>
+                        <td>打开终端</td>
+                        <td><code>Ctrl+`</code></td>
+                        <td><code>Cmd+`</code></td>
+                    </tr>
+                    <tr>
+                        <td>全局搜索</td>
+                        <td><code>Ctrl+Shift+F</code></td>
+                        <td><code>Cmd+Shift+F</code></td>
+                    </tr>
+                    <tr>
+                        <td>转到文件</td>
+                        <td><code>Ctrl+P</code></td>
+                        <td><code>Cmd+P</code></td>
+                    </tr>
+                    <tr>
+                        <td>查看问题</td>
+                        <td><code>Ctrl+Shift+M</code></td>
+                        <td><code>Cmd+Shift+M</code></td>
+                    </tr>
+                </table>
+            </section>
+
+            <!-- 故障排查 -->
+            <section id="troubleshooting">
+                <h2>? 故障排查</h2>
+
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <div class="accordion-header">问题：Clangd 不工作，没有代码补全</div>
+                        <div class="accordion-content">
+                            <h4>可能原因和解决方案：</h4>
+                            
+                            <h5>1. Clangd 未正确安装</h5>
+                            <ul>
+                                <li>检查：打开命令面板 → <code>clangd: Check language server</code></li>
+                                <li>解决：如果未安装，运行 <code>clangd: Download language server</code></li>
+                            </ul>
+
+                            <h5>2. compile_commands.json 不存在或格式错误</h5>
+                            <ul>
+                                <li>检查：确认项目根目录存在 <code>compile_commands.json</code></li>
+                                <li>解决：运行 <code>python make.py</code> 重新生成</li>
+                                <li>验证：打开 <code>compile_commands.json</code> 检查是否为有效 JSON</li>
+                            </ul>
+
+                            <h5>3. C/C++ 插件冲突</h5>
+                            <ul>
+                                <li>检查：打开扩展面板，查看是否安装了 Microsoft C/C++ 插件</li>
+                                <li>解决：在 settings.json 中设置 <code>"C_Cpp.intelliSenseEngine": "Disabled"</code></li>
+                                <li>或者完全卸载 C/C++ 插件</li>
+                            </ul>
+
+                            <h5>4. Clangd 未重启</h5>
+                            <ul>
+                                <li>解决：<code>Ctrl+Shift+P</code> → <code>clangd: Restart language server</code></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">问题：大量红色错误提示（误报）</div>
+                        <div class="accordion-content">
+                            <h4>常见原因：</h4>
+                            
+                            <h5>1. 缺少系统头文件</h5>
+                            <ul>
+                                <li>检查：查看错误信息，是否提示找不到 <code>stdint.h</code>、<code>stdio.h</code> 等</li>
+                                <li>解决：确保 ARM GCC 工具链正确安装，<code>make.py</code> 会自动检测系统头文件</li>
+                                <li>验证：检查 <code>compile_commands.json</code> 中是否包含 <code>-isystem</code> 参数</li>
+                            </ul>
+
+                            <h5>2. IAR 特定语法</h5>
+                            <ul>
+                                <li>原因：IAR 编译器有特殊的关键字和 pragma（如 <code>__packed</code>、<code>#pragma vector</code>）</li>
+                                <li>解决：在 <code>.clangd</code> 中添加到 <code>Diagnostics.Suppress</code></li>
+                                <li>或定义为空宏：在 IAR 项目中添加 <code>-D__packed=</code></li>
+                            </ul>
+
+                            <h5>3. 未定义的宏</h5>
+                            <ul>
+                                <li>检查：确认 IAR 项目中定义的宏是否被正确提取</li>
+                                <li>解决：运行 <code>python make.py</code> 重新生成，检查输出的宏定义数量</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">问题：make.py 运行失败</div>
+                        <div class="accordion-content">
+                            <h4>错误类型和解决方案：</h4>
+                            
+                            <h5>错误：找不到配置 'Debug'</h5>
+                            <ul>
+                                <li>原因：IAR 项目中配置名称不同</li>
+                                <li>解决：打开 IAR，查看配置名称（通常在工具栏下拉菜单）</li>
+                                <li>使用正确的配置名：<code>python make.py --config YourConfigName</code></li>
+                            </ul>
+
+                            <h5>错误：编译器不存在</h5>
+                            <ul>
+                                <li>原因：ARM GCC 路径不正确</li>
+                                <li>解决：
+                                    <ul>
+                                        <li>Windows: <code>python make.py --compiler "C:/Program Files/ARM/bin/arm-none-eabi-gcc.exe"</code></li>
+                                        <li>注意路径中的斜杠方向（推荐使用 <code>/</code>）</li>
+                                    </ul>
+                                </li>
+                                <li>或设置环境变量：<code>set COMPILER_PATH=C:/Program Files/ARM/bin/arm-none-eabi-gcc.exe</code></li>
+                            </ul>
+
+                            <h5>错误：XML 解析错误</h5>
+                            <ul>
+                                <li>原因：.ewp 文件损坏或格式不正确</li>
+                                <li>解决：在 IAR 中重新保存项目，或检查 .ewp 文件编码（应为 UTF-8）</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">问题：Clangd 性能慢，占用大量资源</div>
+                        <div class="accordion-content">
+                            <h4>优化建议：</h4>
+                            
+                            <h5>1. 排除不必要的目录</h5>
+                            <ul>
+                                <li>在 <code>.vscode/settings.json</code> 中添加：</li>
+                                <div class="code-block" data-lang="json">
+<code>"files.watcherExclude": {
+  "**/Debug/**": true,
+  "**/build/**": true,
+  "**/.git/**": true,
+  "**/node_modules/**": true
+}</code>
+                                </div>
+                            </ul>
+
+                            <h5>2. 限制 Clangd 线程数</h5>
+                            <ul>
+                                <li>在 <code>.vscode/settings.json</code> 的 <code>clangd.arguments</code> 中添加：</li>
+                                <div class="code-block" data-lang="json">
+<code>"--jobs=4"  // 限制为 4 个线程</code>
+                                </div>
+                            </ul>
+
+                            <h5>3. 减少索引范围</h5>
+                            <ul>
+                                <li>在 <code>.clangd</code> 中修改：</li>
+                                <div class="code-block" data-lang="yaml">
+<code>Index:
+  Background: Skip  # 不进行后台索引</code>
+                                </div>
+                            </ul>
+
+                            <h5>4. 增加系统资源</h5>
+                            <ul>
+                                <li>关闭其他占用资源的应用</li>
+                                <li>考虑增加 RAM 或使用 SSD</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">问题：某些头文件找不到</div>
+                        <div class="accordion-content">
+                            <h4>解决步骤：</h4>
+                            
+                            <h5>1. 检查 IAR 项目配置</h5>
+                            <ul>
+                                <li>在 IAR 中：项目 → Options → C/C++ Compiler → Preprocessor</li>
+                                <li>查看 Additional include directories</li>
+                                <li>确认所有路径都已正确配置</li>
+                            </ul>
+
+                            <h5>2. 手动添加包含路径</h5>
+                            <ul>
+                                <li>在 <code>.clangd</code> 中添加：</li>
+                                <div class="code-block" data-lang="yaml">
+<code>CompileFlags:
+  Add:
+    - -I/path/to/missing/include</code>
+                                </div>
+                            </ul>
+
+                            <h5>3. 重新生成 compile_commands.json</h5>
+                            <ul>
+                                <li>确保 IAR 项目已保存</li>
+                                <li>运行 <code>python make.py</code></li>
+                                <li>检查输出，查看是否有"未找到"的包含路径警告</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card warning">
+                    <h3>? 获取更多帮助</h3>
+                    <p>如果问题仍未解决：</p>
+                    <ol>
+                        <li>查看 Clangd 日志：
+                            <ul>
+                                <li>打开命令面板：<code>Ctrl+Shift+P</code></li>
+                                <li>运行：<code>clangd: Open language server log</code></li>
+                                <li>查找错误信息</li>
+                            </ul>
+                        </li>
+                        <li>查看 VSCode 输出面板：
+                            <ul>
+                                <li>视图 → 输出（<code>Ctrl+Shift+U</code>）</li>
+                                <li>选择 "Clangd" 通道</li>
+                            </ul>
+                        </li>
+                        <li>访问 Clangd 官方文档：<a href="https://clangd.llvm.org/" target="_blank">https://clangd.llvm.org/</a></li>
+                        <li>VSCode Clangd 插件 GitHub：<a href="https://github.com/clangd/vscode-clangd" target="_blank">https://github.com/clangd/vscode-clangd</a></li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- 常见问题 -->
+            <section id="faq">
+                <h2>? 常见问题 (FAQ)</h2>
+
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <div class="accordion-header">Q: 是否还需要 IAR Embedded Workbench？</div>
+                        <div class="accordion-content">
+                            <p><strong>A:</strong> 是的。本环境只提供代码编辑和浏览功能，<strong>不能替代 IAR 进行编译、链接和调试</strong>。您仍需要：</p>
+                            <ul>
+                                <li>使用 IAR 进行项目配置</li>
+                                <li>使用 IAR 编译器生成最终固件</li>
+                                <li>使用 IAR 调试器进行在线调试</li>
+                            </ul>
+                            <p>推荐工作流：<strong>VSCode 编辑 + IAR 编译调试</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">Q: 可以在 VSCode 中编译和调试吗？</div>
+                        <div class="accordion-content">
+                            <p><strong>A:</strong> 理论上可以，但需要额外配置：</p>
+                            
+                            <h4>编译：</h4>
+                            <ul>
+                                <li>需要配置 Makefile 或 CMake</li>
+                                <li>使用 ARM GCC 替代 IAR 编译器</li>
+                                <li>但可能失去 IAR 特定的优化和功能</li>
+                            </ul>
+
+                            <h4>调试：</h4>
+                            <ul>
+                                <li>可以使用 Cortex-Debug 插件</li>
+                                <li>需要配置 OpenOCD 或 J-Link GDB Server</li>
+                                <li>但配置较为复杂</li>
+                            </ul>
+
+                            <p><strong>建议：</strong>对于已有的 IAR 项目，保持使用 IAR 编译调试更为稳妥。</p>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">Q: 为什么不直接用 IAR 自带的编辑器？</div>
+                        <div class="accordion-content">
+                            <p><strong>A:</strong> VSCode + Clangd 相比 IAR 编辑器有以下优势：</p>
+                            <ul>
+                                <li>? 更现代的界面和用户体验</li>
+                                <li>? 更强大的代码补全和智能提示</li>
+                                <li>? 丰富的插件生态系统</li>
+                                <li>? 更好的代码重构工具</li>
+                                <li>? 更快的响应速度</li>
+                                <li>? 跨项目、跨语言的统一开发环境</li>
+                                <li>? 免费开源</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">Q: compile_commands.json 是什么？</div>
+                        <div class="accordion-content">
+                            <p><strong>A:</strong> <code>compile_commands.json</code> 是 Clang 工具链的编译数据库格式，包含：</p>
+                            <ul>
+                                <li>每个源文件的编译命令</li>
+                                <li>包含路径（-I）</li>
+                                <li>宏定义（-D）</li>
+                                <li>编译选项（-std, -mcpu 等）</li>
+                            </ul>
+                            <p>Clangd 读取此文件来准确理解项目结构，提供精准的代码分析。</p>
+                            <p><strong>make.py</strong> 脚本的作用就是从 IAR 项目文件自动生成这个文件。</p>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">Q: 修改 IAR 项目后需要做什么？</div>
+                        <div class="accordion-content">
+                            <p><strong>A:</strong> 取决于修改内容：</p>
+                            
+                            <table>
+                                <tr>
+                                    <th>修改类型</th>
+                                    <th>需要操作</th>
+                                </tr>
+                                <tr>
+                                    <td>仅修改代码内容</td>
+                                    <td>? 无需操作</td>
+                                </tr>
+                                <tr>
+                                    <td>添加/删除源文件</td>
+                                    <td>? 重新运行 make.py + 重启 Clangd</td>
+                                </tr>
+                                <tr>
+                                    <td>修改包含路径</td>
+                                    <td>? 重新运行 make.py + 重启 Clangd</td>
+                                </tr>
+                                <tr>
+                                    <td>修改宏定义</td>
+                                    <td>? 重新运行 make.py + 重启 Clangd</td>
+                                </tr>
+                                <tr>
+                                    <td>切换配置 (Debug/Release)</td>
+                                    <td>? 重新运行 make.py（带 --config） + 重启 Clangd</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">Q: 为什么有些警告在 Clangd 中显示，但 IAR 编译通过？</div>
+                        <div class="accordion-content">
+                            <p><strong>A:</strong> 这是正常现象，主要原因：</p>
+                            <ul>
+                                <li><strong>不同的编译器：</strong>Clangd 基于 LLVM/Clang，IAR 使用专有编译器，两者的警告规则不同</li>
+                                <li><strong>不同的语言标准：</strong>可能使用不同的 C/C++ 标准版本</li>
+                                <li><strong>IAR 特定语法：</strong>IAR 支持一些非标准扩展</li>
+                            </ul>
+                            <p><strong>解决方案：</strong></p>
+                            <ul>
+                                <li>在 <code>.clangd</code> 中添加到 <code>Diagnostics.Suppress</code> 忽略特定警告</li>
+                                <li>以 IAR 编译结果为准，Clangd 警告仅作参考</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">Q: 可以用于其他微控制器项目吗？</div>
+                        <div class="accordion-content">
+                            <p><strong>A:</strong> 可以！本方法适用于大多数嵌入式项目：</p>
+                            <ul>
+                                <li>? <strong>不同的 MCU：</strong>只需调整 CPU 标志（如 -mcpu=cortex-m3）</li>
+                                <li>? <strong>不同的 IDE：</strong>只要能导出编译信息，就能生成 compile_commands.json
+                                    <ul>
+                                        <li>Keil MDK：可用类似脚本解析 .uvprojx</li>
+                                        <li>Eclipse：可直接生成 compile_commands.json</li>
+                                        <li>CMake：原生支持 <code>-DCMAKE_EXPORT_COMPILE_COMMANDS=ON</code></li>
+                                    </ul>
+                                </li>
+                                <li>? <strong>不同的架构：</strong>ARM, RISC-V, AVR, MSP430 等都可以</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">Q: Clangd 是否会修改我的代码？</div>
+                        <div class="accordion-content">
+                            <p><strong>A:</strong> 不会自动修改。Clangd 是一个<strong>语言服务器</strong>，仅提供分析和建议。代码修改必须由您手动确认：</p>
+                            <ul>
+                                <li>代码补全：需要您选择并按 Enter</li>
+                                <li>重构：需要您确认重命名或修改</li>
+                                <li>格式化：需要您手动触发（Shift+Alt+F）</li>
+                            </ul>
+                            <p>所有操作都是安全的，并且 VSCode 支持撤销（Ctrl+Z）。</p>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">Q: 如何在团队中共享此配置？</div>
+                        <div class="accordion-content">
+                            <p><strong>A:</strong> 建议提交以下文件到版本控制（Git）：</p>
+                            
+                            <h4>? 应该提交：</h4>
+                            <ul>
+                                <li><code>make.py</code> - 生成脚本</li>
+                                <li><code>.clangd</code> - Clangd 配置</li>
+                                <li><code>.vscode/settings.json</code> - VSCode 工作区配置</li>
+                                <li><code>README.md</code> - 配置说明（可以包含本指南的链接）</li>
+                            </ul>
+
+                            <h4>? 不应提交：</h4>
+                            <ul>
+                                <li><code>compile_commands.json</code> - 包含本地绝对路径，每人需自行生成</li>
+                                <li><code>.vscode/extensions.json</code> - 可选，如需可提交</li>
+                            </ul>
+
+                            <h4>团队成员设置步骤：</h4>
+                            <ol>
+                                <li>克隆项目仓库</li>
+                                <li>按照本指南安装 VSCode 和 Clangd</li>
+                                <li>安装 ARM GCC 工具链</li>
+                                <li>运行 <code>python make.py --compiler "你的编译器路径"</code></li>
+                                <li>打开 VSCode，自动加载配置</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 高级主题 -->
+            <section id="advanced">
+                <h2>? 高级主题</h2>
+
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <div class="accordion-header">自定义 Clangd 配置</div>
+                        <div class="accordion-content">
+                            <p><code>.clangd</code> 文件支持更多高级配置：</p>
+                            
+                            <div class="code-block" data-lang="yaml">
+<code># 示例：完整的高级配置
+CompileFlags:
+  CompilationDatabase: "."
+  Add:
+    - --target=arm-none-eabi
+    - -ferror-limit=0  # 不限制错误数量
+  Remove:
+    - -mfpu=*  # 移除所有 FPU 相关标志
+
+Diagnostics:
+  Suppress:
+    - unused-*  # 抑制所有 unused 警告
+    - gnu-*     # 抑制 GNU 扩展警告
+  ClangTidy:
+    Add: [performance-*, modernize-*]  # 启用特定检查
+    Remove: [modernize-use-trailing-return-type]
+    CheckOptions:
+      readability-identifier-naming.VariableCase: CamelCase
+
+Index:
+  Background: Build
+  StandardLibrary: Yes
+
+Hover:
+  ShowAKA: Yes  # 显示类型别名
+
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: Yes</code>
+                            </div>
+
+                            <p>更多配置选项请参考：<a href="https://clangd.llvm.org/config" target="_blank">Clangd Configuration</a></p>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">使用 Clang-Format 格式化代码</div>
+                        <div class="accordion-content">
+                            <p>Clangd 集成了 clang-format，可以自动格式化代码。</p>
+                            
+                            <h4>创建 .clang-format 文件：</h4>
+                            <div class="code-block" data-lang="yaml">
+<code># .clang-format
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 120
+PointerAlignment: Right
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true</code>
+                            </div>
+
+                            <h4>使用方法：</h4>
+                            <ul>
+                                <li>格式化整个文件：<code>Shift+Alt+F</code></li>
+                                <li>格式化选定内容：选中代码 → 右键 → Format Selection</li>
+                                <li>保存时自动格式化：在 settings.json 中添加：
+                                    <div class="code-block" data-lang="json">
+<code>"editor.formatOnSave": true</code>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">配置多个 IAR 配置（Debug/Release）</div>
+                        <div class="accordion-content">
+                            <p>如果需要在不同配置间切换：</p>
+                            
+                            <h4>方法一：使用环境变量</h4>
+                            <div class="code-block" data-lang="bash">
+<code># Windows
+set IAR_CONFIG=Release
+python make.py
+
+# Linux/macOS
+export IAR_CONFIG=Release
+python make.py</code>
+                            </div>
+
+                            <h4>方法二：创建多个 compile_commands.json</h4>
+                            <div class="code-block" data-lang="bash">
+<code># 生成 Debug 配置
+python make.py --config Debug --output compile_commands_debug.json
+
+# 生成 Release 配置
+python make.py --config Release --output compile_commands_release.json
+
+# 创建符号链接或复制文件切换配置
+# Windows (需管理员权限)
+mklink compile_commands.json compile_commands_debug.json
+
+# Linux/macOS
+ln -sf compile_commands_debug.json compile_commands.json</code>
+                            </div>
+
+                            <h4>方法三：使用 VSCode Tasks</h4>
+                            <p>创建 <code>.vscode/tasks.json</code>：</p>
+                            <div class="code-block" data-lang="json">
+<code>{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Generate compile_commands (Debug)",
+      "type": "shell",
+      "command": "python",
+      "args": ["make.py", "--config", "Debug"],
+      "group": "build"
+    },
+    {
+      "label": "Generate compile_commands (Release)",
+      "type": "shell",
+      "command": "python",
+      "args": ["make.py", "--config", "Release"],
+      "group": "build"
+    }
+  ]
+}</code>
+                            </div>
+                            <p>使用：<code>Ctrl+Shift+P</code> → <code>Tasks: Run Task</code> → 选择任务</p>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header">集成 Git 和版本控制</div>
+                        <div class="accordion-content">
+                            <h4>推荐的 .gitignore 配置：</h4>
+                            <div class="code-block" data-lang="gitignore">
+<code># 编译产物
+Debug/
+Release/
+*.o
+*.obj
+*.hex
+*.bin
+*.elf
+*.out
+
+# IDE 特定文件
+*.dep
+*.ewt
+*.dni
+*.wsdt
+*.dbgdt
+settings/*.dnx
+
+# Clangd 生成的文件
+compile_commands.json
+.cache/
+.clangd/
+
+# VSCode 特定（可选，团队共享则不排除）
+.vscode/.browse.VC.db*
+.vscode/*.log
+
+# Python 缓存
+__pycache__/
+*.pyc</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 总结 -->
+            <section id="summary">
+                <h2>? 总结</h2>
+                <div class="card success">
+                    <h3>? 完成配置后，您将拥有：</h3>
+                    <ul>
+                        <li>? 现代化的代码编辑环境</li>
+                        <li>? 精准的代码智能提示和补全</li>
+                        <li>? 快速的代码导航和重构</li>
+                        <li>? 实时的代码错误检查</li>
+                        <li>? 保持 IAR 的编译和调试能力</li>
+                        <li>? 可扩展的插件生态系统</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>? 快速回顾清单：</h3>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="summary-1">
+                        <label for="summary-1">安装 Visual Studio Code</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="summary-2">
+                        <label for="summary-2">安装 Clangd 插件</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="summary-3">
+                        <label for="summary-3">禁用 C/C++ 插件的 IntelliSense</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="summary-4">
+                        <label for="summary-4">安装 ARM GCC 工具链</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="summary-5">
+                        <label for="summary-5">创建 .clangd 配置文件</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="summary-6">
+                        <label for="summary-6">创建 .vscode/settings.json</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="summary-7">
+                        <label for="summary-7">运行 python make.py 生成 compile_commands.json</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="summary-8">
+                        <label for="summary-8">重启 Clangd 语言服务器</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="summary-9">
+                        <label for="summary-9">等待索引完成，开始编码！</label>
+                    </div>
+                </div>
+
+                <div class="card warning">
+                    <h3>? 重要提示：</h3>
+                    <ul>
+                        <li>本环境用于<strong>代码编辑和浏览</strong>，编译调试仍使用 IAR</li>
+                        <li>IAR 项目变更后需重新运行 <code>make.py</code></li>
+                        <li>遇到问题先查看"故障排查"章节</li>
+                        <li>建议将配置文件（除 compile_commands.json）提交到版本控制</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <h3>? 参考资源</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 20px 0;">
+                <a href="https://code.visualstudio.com/docs" class="btn" target="_blank">VSCode 文档</a>
+                <a href="https://clangd.llvm.org/" class="btn" target="_blank">Clangd 官网</a>
+                <a href="https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain" class="btn" target="_blank">ARM GNU Toolchain</a>
+            </div>
+            <p style="margin-top: 20px; opacity: 0.8;">
+                ? 2024 IAR to VSCode Migration Guide | 
+                版本 1.0 | 
+                最后更新: 2024
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // 手风琴折叠效果
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', () => {
+                header.classList.toggle('active');
+                const content = header.nextElementSibling;
+                content.classList.toggle('show');
+            });
+        });
+
+        // 进度条更新
+        function updateProgress() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const checked = document.querySelectorAll('input[type="checkbox"]:checked').length;
+            const total = checkboxes.length;
+            const percentage = total > 0 ? Math.round((checked / total) * 100) : 0;
+            
+            const progressFill = document.getElementById('progress');
+            progressFill.style.width = percentage + '%';
+            progressFill.textContent = percentage + '%';
+        }
+
+        // 监听所有复选框
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', updateProgress);
+            
+            // 从 localStorage 加载状态
+            const saved = localStorage.getItem(checkbox.id);
+            if (saved === 'true') {
+                checkbox.checked = true;
+            }
+            
+            // 保存状态到 localStorage
+            checkbox.addEventListener('change', () => {
+                localStorage.setItem(checkbox.id, checkbox.checked);
+            });
+        });
+
+        // 初始化进度条
+        updateProgress();
+
+        // 平滑滚动
+        document.querySelectorAll('nav a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 打印功能
+        function printGuide() {
+            window.print();
+        }
+
+        // 代码块复制功能
+        document.querySelectorAll('.code-block').forEach(block => {
+            const button = document.createElement('button');
+            button.textContent = '? 复制';
+            button.style.cssText = `
+                position: absolute;
+                top: 5px;
+                left: 10px;
+                background: rgba(255,255,255,0.2);
+                border: none;
+                color: white;
+                padding: 5px 10px;
+                border-radius: 3px;
+                cursor: pointer;
+                font-size: 0.8em;
+            `;
+            block.style.position = 'relative';
+            block.appendChild(button);
+            
+            button.addEventListener('click', () => {
+                const code = block.querySelector('code').textContent;
+                navigator.clipboard.writeText(code).then(() => {
+                    button.textContent = '? 已复制';
+                    setTimeout(() => {
+                        button.textContent = '? 复制';
+                    }, 2000);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

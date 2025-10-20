@@ -1,0 +1,21 @@
+{
+    "clangd.arguments": [
+      "--background-index",
+      "--pch-storage=memory",
+      "--query-driver=**/arm-none-eabi-*",
+      "--compile-commands-dir=${workspaceFolder}",
+      "--offset-encoding=utf-16"
+    ],
+    "C_Cpp.intelliSenseEngine": "Disabled",
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/compile_commands.json",
+    "files.watcherExclude": {
+      "**/Debug/**": true,
+      "**/.git/**": true,
+      "**/build/**": true
+    },
+    "search.exclude": {
+      "**/Debug/**": true,
+      "**/.git/**": true,
+      "**/build/**": true
+    }
+  }

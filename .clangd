@@ -1,0 +1,26 @@
+CompileFlags:
+  CompilationDatabase: "."
+
+  Add:
+    - --target=arm-none-eabi
+
+  Remove:
+    - -Wpragma-once-outside-header
+    - -fno-exceptions
+    - -fno-rtti
+
+Diagnostics:
+  Suppress:
+    - pragma-once-outside-header
+    - unused-parameter
+    - unknown-pragmas
+    - unused-variable
+
+  UnusedIncludes: None 
+  MissingIncludes: None
+
+Index:
+  Background: Build
+
+Completion:
+  AllScopes: true
